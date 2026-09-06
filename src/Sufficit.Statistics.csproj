@@ -89,8 +89,11 @@
 	<!-- #endregion -->
 
 	<ItemGroup Label="Sufficit Platform Dependencies">
-		<PackageReference Include="Sufficit.Events" Version="1.*" />
-		<PackageReference Include="Sufficit.EFData" Version="1.*" />
+		<!-- Concrete minimums (latest published) instead of floating: floating transitive
+		     specs collapse to their floor when the package is project-referenced by
+		     consumers, which conflicts with their own floated resolution (NU1107). -->
+		<PackageReference Include="Sufficit.Events" Version="1.26.812.517" />
+		<PackageReference Include="Sufficit.EFData" Version="1.26.812.621" />
 	</ItemGroup>
 
 	<ItemGroup Label="Sufficit Framework Dependencies">
