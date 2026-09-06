@@ -4,7 +4,7 @@
 		<!-- Matches Sufficit.EFData TFMs: this package consumes EFData statistics
 		     contracts (Metric, MetricsSearchParameters, IMetricsProvider) and cannot
 		     target anything EFData does not. -->
-		<TargetFrameworks>net7.0;net9.0;net10.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net7.0;net9.0;net10.0</TargetFrameworks>
 		<RootNamespace>Sufficit.Statistics</RootNamespace>
 	</PropertyGroup>
 
@@ -65,6 +65,13 @@
 
 	<!-- #region Sufficit Versioning Options V:202508251150 -->
 
+	<PropertyGroup Label="Sufficit Versioning Options" Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PkgVersion>[9.*,10.0.0)</PkgVersion>
+		<PkgVersionUntil8>[*,10.0.0)</PkgVersionUntil8>
+		<NoWarn>$(NoWarn);nullable</NoWarn>
+		<LangVersion>9.0</LangVersion>
+	</PropertyGroup>
+
 	<PropertyGroup Label="Sufficit Versioning Options" Condition=" '$(TargetFramework)' == 'net7.0' ">
 		<PkgVersion>[*,8.0.0)</PkgVersion>
 		<PkgVersionUntil8>[8.*,10.0.0)</PkgVersionUntil8>
@@ -97,7 +104,8 @@
 	</ItemGroup>
 
 	<ItemGroup Label="Sufficit Framework Dependencies">
-		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(PkgVersion)" Condition=" '$(TargetFramework)' == 'net7.0'" />
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(PkgVersion)" Condition=" '$(TargetFramework)' == 'net7.0' OR '$(TargetFramework)' == 'netstandard2.0'" />
+		<PackageReference Include="System.Net.Http" Version="4.3.4" Condition=" '$(TargetFramework)' == 'netstandard2.0'" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="$(PkgVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(PkgVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Options" Version="$(PkgVersion)" />
