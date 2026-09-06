@@ -37,6 +37,11 @@ jobs:
       run: dotnet pack --configuration Release --no-build --output ${{ env.NUPKGS_DIR }}
 
     - name: Publish to Nuget.Org
-      # Skipped until the repository has the NUGET_API_KEY secret configured.
-      if: ${{ secrets.NUGET_API_KEY != '' }}
-      run: dotnet nuget push --skip-duplicate ${{ env.NUPKGS_DIR }}/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+      run: |
+        if [ -z "$NUGET_API_KEY" ]; then
+          echo "NUGET_API_KEY secret not configured; skipping publish."
+          exit 0
+        fi
+        dotnet nuget push --skip-duplicate "$NUPKGS_DIR"/*.nupkg --source https://api.nuget.org/v3/index.json --api-key "$NUGET_API_KEY"
