@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 namespace Sufficit.Statistics
 {
     /// <summary>
-    /// Event handler part of StatisticsGeneralController
+    /// Event handler part of StatisticsRuntime
     /// Handles Metric events from the event bus and delegates to cache system for optimized batch processing
     /// </summary>
-    public partial class StatisticsGeneralController : IEventHandler<Metric>
+    public partial class StatisticsRuntime : IEventHandler<Metric>
     {
         #region IEventHandler<Metric> Implementation
 

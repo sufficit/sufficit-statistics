@@ -9,7 +9,7 @@ versioned NuGet package (`Sufficit.Statistics`), namespace preserved.
 
 ## What lives here
 
-- **`StatisticsGeneralController`** — the event-bus metric sink: consumes `Metric`
+- **`StatisticsRuntime`** — the event-bus metric sink: consumes `Metric`
   events (`IEventHandler<Metric>` via `Sufficit.Events`), caches them and
   batches to the configured output provider.
 - **Output providers** — `VictoriaMetricsProvider`, `InfluxDbMetricsProvider`,

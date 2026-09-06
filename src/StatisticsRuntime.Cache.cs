@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 namespace Sufficit.Statistics
 {
     /// <summary>
-    /// Cache management part of StatisticsGeneralController
+    /// Cache management part of StatisticsRuntime
     /// Handles internal caching system for optimized batch processing of metrics
     /// </summary>
-    public partial class StatisticsGeneralController
+    public partial class StatisticsRuntime
     {
         #region Internal Metrics Cache
 

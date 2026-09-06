@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 namespace Sufficit.Statistics
 {
     /// <summary>
-    /// Extension methods for StatisticsGeneralController providing additional functionality
+    /// Extension methods for StatisticsRuntime providing additional functionality
     /// </summary>
-    public static class StatisticsGeneralControllerExtensions
+    public static class StatisticsRuntimeExtensions
     {
         /// <summary>
         /// Write a single metric point with a typed value
@@ -23,7 +23,7 @@ namespace Sufficit.Statistics
         /// <param name="timestamp">Optional timestamp (default: DateTime.UtcNow)</param>
         /// <param name="cancellationToken">Cancellation token</param>
         public static async Task WriteMetricAsync<T>(
-            this StatisticsGeneralController controller,
+            this StatisticsRuntime controller,
             string measurement,
             T value,
             string fieldName = "value",
@@ -52,7 +52,7 @@ namespace Sufficit.Statistics
         /// <param name="batch">Batch of metrics with same context</param>
         /// <param name="cancellationToken">Cancellation token</param>
         public static async Task WriteBatchAsync(
-            this StatisticsGeneralController controller,
+            this StatisticsRuntime controller,
             MetricsBatch batch,
             CancellationToken cancellationToken = default)
         {
@@ -79,7 +79,7 @@ namespace Sufficit.Statistics
         /// <param name="timestamp">Common timestamp for all metrics</param>
         /// <param name="cancellationToken">Cancellation token</param>
         public static async Task WriteMultipleMeasurementsAsync(
-            this StatisticsGeneralController controller,
+            this StatisticsRuntime controller,
             Dictionary<string, Dictionary<string, object>> measurements,
             Dictionary<string, string>? tags = null,
             DateTime? timestamp = null,
@@ -111,7 +111,7 @@ namespace Sufficit.Statistics
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Collection of field values</returns>
         public static async Task<IEnumerable<object>> GetFieldValuesAsync(
-            this StatisticsGeneralController controller,
+            this StatisticsRuntime controller,
             string measurement,
             string fieldName,
             DateTimeRangeNew? timeRange = null,
@@ -137,7 +137,7 @@ namespace Sufficit.Statistics
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Sum of field values (converted to decimal)</returns>
         public static async Task<decimal> SumFieldAsync(
-            this StatisticsGeneralController controller,
+            this StatisticsRuntime controller,
             string measurement,
             string fieldName,
             DateTimeRangeNew? timeRange = null,
@@ -161,7 +161,7 @@ namespace Sufficit.Statistics
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Count of metrics</returns>
         public static async Task<int> CountMetricsAsync(
-            this StatisticsGeneralController controller,
+            this StatisticsRuntime controller,
             string measurement,
             DateTimeRangeNew? timeRange = null,
             Dictionary<string, string>? tags = null,
@@ -182,7 +182,7 @@ namespace Sufficit.Statistics
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Average of field values (converted to decimal)</returns>
         public static async Task<decimal> AverageFieldAsync(
-            this StatisticsGeneralController controller,
+            this StatisticsRuntime controller,
             string measurement,
             string fieldName,
             DateTimeRangeNew? timeRange = null,
@@ -206,7 +206,7 @@ namespace Sufficit.Statistics
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Maximum field value (converted to decimal)</returns>
         public static async Task<decimal> MaxFieldAsync(
-            this StatisticsGeneralController controller,
+            this StatisticsRuntime controller,
             string measurement,
             string fieldName,
             DateTimeRangeNew? timeRange = null,
@@ -230,7 +230,7 @@ namespace Sufficit.Statistics
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Minimum field value (converted to decimal)</returns>
         public static async Task<decimal> MinFieldAsync(
-            this StatisticsGeneralController controller,
+            this StatisticsRuntime controller,
             string measurement,
             string fieldName,
             DateTimeRangeNew? timeRange = null,
@@ -256,7 +256,7 @@ namespace Sufficit.Statistics
         /// <param name="timestamp">Optional timestamp (uses current time if null)</param>
         /// <param name="cancellationToken">Cancellation token</param>
         public static async Task WriteCounterAsync(
-            this StatisticsGeneralController controller,
+            this StatisticsRuntime controller,
             string measurement,
             Dictionary<string, string>? tags = null,
             DateTime? timestamp = null,
@@ -275,7 +275,7 @@ namespace Sufficit.Statistics
         /// <param name="timestamp">Optional timestamp (uses current time if null)</param>
         /// <param name="cancellationToken">Cancellation token</param>
         public static async Task WriteGaugeAsync<T>(
-            this StatisticsGeneralController controller,
+            this StatisticsRuntime controller,
             string measurement,
             T value,
             Dictionary<string, string>? tags = null,
@@ -301,7 +301,7 @@ namespace Sufficit.Statistics
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Collection of aggregated metric results</returns>
         public static async Task<IEnumerable<Metric>> SearchWithAggregationAsync(
-            this StatisticsGeneralController controller,
+            this StatisticsRuntime controller,
             string measurement,
             DateTimeRangeNew? timestamp = null,
             List<string>? aggregations = null,
@@ -334,7 +334,7 @@ namespace Sufficit.Statistics
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Collection of metric results</returns>
         public static async Task<IEnumerable<Metric>> SearchWithPaginationAsync(
-            this StatisticsGeneralController controller,
+            this StatisticsRuntime controller,
             string measurement,
             DateTimeRangeNew? timestamp = null,
             int? limit = null,

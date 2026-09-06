@@ -22,9 +22,9 @@ namespace Sufficit.Statistics
         public static IServiceCollection AddSufficitStatistics(this IServiceCollection services, IConfiguration configuration, ILoggerFactory? factory = null)
         {
             services.AddVictoriaMetricsProvider(configuration);
-            services.AddSingleton<StatisticsGeneralController>();
-            services.AddSingleton<IMetricController>(provider => provider.GetRequiredService<StatisticsGeneralController>());
-            services.AddSingleton<IEventHandler<Metric>>(provider => provider.GetRequiredService<StatisticsGeneralController>());
+            services.AddSingleton<StatisticsRuntime>();
+            services.AddSingleton<IMetricController>(provider => provider.GetRequiredService<StatisticsRuntime>());
+            services.AddSingleton<IEventHandler<Metric>>(provider => provider.GetRequiredService<StatisticsRuntime>());
 
             return services;
         }

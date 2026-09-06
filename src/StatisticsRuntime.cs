@@ -13,12 +13,12 @@ namespace Sufficit.Statistics
     /// This controller provides a unified interface for all statistics operations
     /// and works with any IMetricsProvider implementation (VictoriaMetrics, Entity Framework, etc.)
     /// </summary>
-    public partial class StatisticsGeneralController : IMetricController
+    public partial class StatisticsRuntime : IMetricController
     {
         #region Private Fields
 
         private readonly IMetricsProvider _metricsProvider;
-        private readonly ILogger<StatisticsGeneralController> _logger;
+        private readonly ILogger<StatisticsRuntime> _logger;
 
         #endregion
         #region IMPLEMENTATION OF IMetricController
@@ -33,9 +33,9 @@ namespace Sufficit.Statistics
         /// </summary>
         /// <param name="metricsProvider">Provider for metrics operations</param>
         /// <param name="logger">Logger instance</param>
-        public StatisticsGeneralController(
+        public StatisticsRuntime(
             IMetricsProvider metricsProvider,
-            ILogger<StatisticsGeneralController> logger)
+            ILogger<StatisticsRuntime> logger)
         {
             _metricsProvider = metricsProvider ?? throw new ArgumentNullException(nameof(metricsProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

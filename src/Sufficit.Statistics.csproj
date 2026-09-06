@@ -37,7 +37,7 @@
 	<PropertyGroup Label="Sufficit Pacote NUGET">
 		<Name>Sufficit Statistics</Name>
 		<PackageId>Sufficit.Statistics</PackageId>
-		<PackageDescription>Statistics collection and routing for the Sufficit platform: event-bus metric sink (StatisticsGeneralController), VictoriaMetrics / InfluxDB / composite output providers and publication extensions. Extracted from sufficit-standard.</PackageDescription>
+		<PackageDescription>Statistics collection and routing for the Sufficit platform: event-bus metric sink (StatisticsRuntime), VictoriaMetrics / InfluxDB / composite output providers and publication extensions. Extracted from sufficit-standard.</PackageDescription>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/sufficit/sufficit-statistics</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/sufficit/sufficit-statistics</PackageProjectUrl>
