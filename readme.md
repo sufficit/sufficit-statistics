@@ -22,6 +22,10 @@ The metric data model (`Metric`, `MetricsSearchParameters`, `IMetricsProvider`)
 and the EF persistence live in **`Sufficit.EFData`**; this package only routes
 and delivers.
 
+Also hosts the self-contained tracking primitives from `Sufficit.Logging`
+(`ITracking`, `LogStopWatch` and extensions) used by the AI transcription and
+translation legacy endpoints — pure BCL, no other dependencies.
+
 ## Usage
 
 ```csharp
