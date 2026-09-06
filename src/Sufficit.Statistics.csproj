@@ -4,7 +4,7 @@
 		<!-- Matches Sufficit.EFData TFMs: this package consumes EFData statistics
 		     contracts (Metric, MetricsSearchParameters, IMetricsProvider) and cannot
 		     target anything EFData does not. -->
-		<TargetFrameworks>netstandard2.0;net7.0;net9.0;net10.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net7.0;net10.0</TargetFrameworks>
 		<RootNamespace>Sufficit.Statistics</RootNamespace>
 	</PropertyGroup>
 
@@ -79,12 +79,6 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
-	<PropertyGroup Label="Sufficit Versioning Options" Condition=" '$(TargetFramework)' == 'net9.0' ">
-		<PkgVersion>[9.*,10.0.0)</PkgVersion>
-		<PkgVersionUntil8>[*,10.0.0)</PkgVersionUntil8>
-		<LangVersion>10.0</LangVersion>
-		<Nullable>enable</Nullable>
-	</PropertyGroup>
 
 	<PropertyGroup Label="Sufficit Versioning Options" Condition=" '$(TargetFramework)' == 'net10.0' ">
 		<PkgVersion>[10.*,11.0.0)</PkgVersion>
@@ -96,16 +90,15 @@
 	<!-- #endregion -->
 
 	<ItemGroup Label="Sufficit Platform Dependencies">
-		<!-- Concrete minimums (latest published) instead of floating: floating transitive
-		     specs collapse to their floor when the package is project-referenced by
-		     consumers, which conflicts with their own floated resolution (NU1107). -->
-		<PackageReference Include="Sufficit.Events" Version="1.26.812.517" />
-		<PackageReference Include="Sufficit.EFData" Version="1.26.812.621" />
+		<ProjectReference Include="..\..\sufficit-events\src\Sufficit.Events.csproj" Condition="Exists('..\..\sufficit-events\src\Sufficit.Events.csproj') AND '$(TargetFramework)' != 'netstandard2.0'" />
+		<PackageReference Include="Sufficit.Events" Version="1.*" Condition="!Exists('..\..\sufficit-events\src\Sufficit.Events.csproj') OR '$(TargetFramework)' == 'netstandard2.0'" />
+
+		<ProjectReference Include="..\..\sufficit-efdata\src\Sufficit.EFData.csproj" Condition="Exists('..\..\sufficit-efdata\src\Sufficit.EFData.csproj') AND '$(TargetFramework)' != 'netstandard2.0'" />
+		<PackageReference Include="Sufficit.EFData" Version="1.*" Condition="!Exists('..\..\sufficit-efdata\src\Sufficit.EFData.csproj') OR '$(TargetFramework)' == 'netstandard2.0'" />
 	</ItemGroup>
 
 	<ItemGroup Label="Sufficit Framework Dependencies">
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(PkgVersion)" Condition=" '$(TargetFramework)' == 'net7.0' OR '$(TargetFramework)' == 'netstandard2.0'" />
-		<PackageReference Include="System.Net.Http" Version="4.3.4" Condition=" '$(TargetFramework)' == 'netstandard2.0'" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="$(PkgVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(PkgVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Options" Version="$(PkgVersion)" />
