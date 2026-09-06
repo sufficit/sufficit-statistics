@@ -1,0 +1,107 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup Label="Sufficit Targeting">
+		<!-- Matches Sufficit.EFData TFMs: this package consumes EFData statistics
+		     contracts (Metric, MetricsSearchParameters, IMetricsProvider) and cannot
+		     target anything EFData does not. -->
+		<TargetFrameworks>net7.0;net9.0;net10.0</TargetFrameworks>
+		<RootNamespace>Sufficit.Statistics</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup Label="Sufficit Versioning">
+		<VersionSuffix Condition=" '$(Configuration)' != 'Debug' ">1.$([System.DateTime]::UtcNow.ToString(yy)).$([System.DateTime]::UtcNow.ToString(MMdd)).$([System.DateTime]::UtcNow.ToString(HHmm))</VersionSuffix>
+		<AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">1.99.0.0</AssemblyVersion>
+		<AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
+		<Version Condition=" '$(VersionSuffix)' == '' ">1.99.0.0</Version>
+		<Version Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</Version>
+	</PropertyGroup>
+
+	<PropertyGroup Label="Sufficit Product General">
+		<Company>SUFFICIT SOLUÇÕES EM TECNOLOGIA DA INFORMAÇÃO</Company>
+		<Authors>Hugo Castro de Deco</Authors>
+		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+		<ProductName>Sufficit Statistics</ProductName>
+
+		<!-- Copia todas as dlls de dependencias para o diretório de publicação dos projetos que o utilizam -->
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<PreserveCompilationReferences>false</PreserveCompilationReferences>
+
+		<RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+		<!-- No warning for missing docs -->
+		<NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
+	</PropertyGroup>
+
+	<PropertyGroup Label="Sufficit Pacote NUGET">
+		<Name>Sufficit Statistics</Name>
+		<PackageId>Sufficit.Statistics</PackageId>
+		<PackageDescription>Statistics collection and routing for the Sufficit platform: event-bus metric sink (StatisticsGeneralController), VictoriaMetrics / InfluxDB / composite output providers and publication extensions. Extracted from sufficit-standard.</PackageDescription>
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/sufficit/sufficit-statistics</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/sufficit/sufficit-statistics</PackageProjectUrl>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+
+		<PackageLicenseFile>license</PackageLicenseFile>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
+		<PackageIcon>icon.png</PackageIcon>
+	</PropertyGroup>
+
+	<ItemGroup Label="Sufficit Pack Items">
+		<None Include="../icon.png">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+		<None Include="../license">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+		<None Include="../readme.md">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
+
+	<!-- #region Sufficit Versioning Options V:202508251150 -->
+
+	<PropertyGroup Label="Sufficit Versioning Options" Condition=" '$(TargetFramework)' == 'net7.0' ">
+		<PkgVersion>[*,8.0.0)</PkgVersion>
+		<PkgVersionUntil8>[8.*,10.0.0)</PkgVersionUntil8>
+		<LangVersion>10.0</LangVersion>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<PropertyGroup Label="Sufficit Versioning Options" Condition=" '$(TargetFramework)' == 'net9.0' ">
+		<PkgVersion>[9.*,10.0.0)</PkgVersion>
+		<PkgVersionUntil8>[*,10.0.0)</PkgVersionUntil8>
+		<LangVersion>10.0</LangVersion>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<PropertyGroup Label="Sufficit Versioning Options" Condition=" '$(TargetFramework)' == 'net10.0' ">
+		<PkgVersion>[10.*,11.0.0)</PkgVersion>
+		<PkgVersionUntil8>[*,11.0.0)</PkgVersionUntil8>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<!-- #endregion -->
+
+	<ItemGroup Label="Sufficit Platform Dependencies">
+		<PackageReference Include="Sufficit.Events" Version="1.*" />
+		<PackageReference Include="Sufficit.EFData" Version="1.*" />
+	</ItemGroup>
+
+	<ItemGroup Label="Sufficit Framework Dependencies">
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(PkgVersion)" Condition=" '$(TargetFramework)' == 'net7.0'" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="$(PkgVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(PkgVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="$(PkgVersion)" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(PkgVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="$(PkgVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(PkgVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="$(PkgVersion)" />
+	</ItemGroup>
+
+</Project>
