@@ -94,7 +94,11 @@
 		<PackageReference Include="Sufficit.Events" Version="1.*" Condition="!Exists('..\..\sufficit-events\src\Sufficit.Events.csproj') OR '$(TargetFramework)' == 'netstandard2.0'" />
 
 		<ProjectReference Include="..\..\sufficit-efdata\src\Sufficit.EFData.csproj" Condition="Exists('..\..\sufficit-efdata\src\Sufficit.EFData.csproj') AND '$(TargetFramework)' != 'netstandard2.0'" />
-		<PackageReference Include="Sufficit.EFData" Version="1.*" Condition="!Exists('..\..\sufficit-efdata\src\Sufficit.EFData.csproj') OR '$(TargetFramework)' == 'netstandard2.0'" />
+		<PackageReference Include="Sufficit.EFData" Version="1.*" Condition="!Exists('..\..\sufficit-efdata\src\Sufficit.EFData.csproj') AND '$(TargetFramework)' != 'netstandard2.0'" />
+		<!-- 1.26.812.621 is the last published EFData that still ships a netstandard2.0
+		     asset; the floating range resolves to a newer one that dropped it, and the
+		     restore fails outright. -->
+		<PackageReference Include="Sufficit.EFData" Version="1.26.812.621" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
 	</ItemGroup>
 
 	<ItemGroup Label="Sufficit Framework Dependencies">
