@@ -3,3 +3,6 @@ obj/
 *.user
 nupkgs/
 .vs/
+
+# Local isolated worktrees
+**/.worktrees/
