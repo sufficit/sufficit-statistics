@@ -103,6 +103,13 @@
 
 	<ItemGroup Label="Sufficit Framework Dependencies">
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(PkgVersion)" Condition=" '$(TargetFramework)' == 'net7.0' OR '$(TargetFramework)' == 'netstandard2.0'" />
+		<!-- Direct System.Text.Json pin (netstandard2.0 only): the pinned EFData 1.26.812.621
+		     asset declares Sufficit.Base >= 1.26.812.136 (floating minimum), which NuGet resolves
+		     to 1.99.0 -> Sufficit.Telephony.EventsPanel.Core 1.26.909.1815, requiring
+		     System.Text.Json >= 9.0.20, while EFData itself floats >= 9.0.19. NuGet flags that
+		     as a downgrade (NU1605) unless the project references the package directly;
+		     $(PkgVersion) floats to the latest 9.x, satisfying both. -->
+		<PackageReference Include="System.Text.Json" Version="$(PkgVersion)" Condition=" '$(TargetFramework)' == 'netstandard2.0'" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="$(PkgVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(PkgVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Options" Version="$(PkgVersion)" />
