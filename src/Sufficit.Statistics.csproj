@@ -102,7 +102,9 @@
 	</ItemGroup>
 
 	<ItemGroup Label="Sufficit Framework Dependencies">
-		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(PkgVersion)" Condition=" '$(TargetFramework)' == 'net7.0' OR '$(TargetFramework)' == 'netstandard2.0'" />
+		<!-- net7 hosts load assembly 8.0.0.0 through the Standard/EF graph. -->
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="[8.*,9.0.0)" Condition=" '$(TargetFramework)' == 'net7.0'" />
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(PkgVersion)" Condition=" '$(TargetFramework)' == 'netstandard2.0'" />
 		<!-- Direct System.Text.Json pin (netstandard2.0 only): the pinned EFData 1.26.812.621
 		     asset declares Sufficit.Base >= 1.26.812.136 (floating minimum), which NuGet resolves
 		     to 1.99.0 -> Sufficit.Telephony.EventsPanel.Core 1.26.909.1815, requiring
