@@ -102,6 +102,7 @@
 	</ItemGroup>
 
 	<ItemGroup Label="Sufficit Framework Dependencies">
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.11" />
 		<!-- net7 hosts load assembly 8.0.0.0 through the Standard/EF graph. -->
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="[8.*,9.0.0)" Condition=" '$(TargetFramework)' == 'net7.0'" />
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(PkgVersion)" Condition=" '$(TargetFramework)' == 'netstandard2.0'" />
@@ -112,6 +113,7 @@
 		     as a downgrade (NU1605) unless the project references the package directly;
 		     $(PkgVersion) floats to the latest 9.x, satisfying both. -->
 		<PackageReference Include="System.Text.Json" Version="$(PkgVersion)" Condition=" '$(TargetFramework)' == 'netstandard2.0'" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(PkgVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="$(PkgVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(PkgVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Options" Version="$(PkgVersion)" />

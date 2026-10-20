@@ -69,6 +69,9 @@ jobs:
       working-directory: ${{ env.SRC_DIR }}
       run: dotnet build --configuration Release --no-restore
 
+    - name: Validate persistent metrics queue
+      run: dotnet run --project tests/QueueTests.csproj --configuration Release
+
     - name: Pack
       working-directory: ${{ env.SRC_DIR }}
       run: dotnet pack --configuration Release --no-build --output ${{ env.NUPKGS_DIR }}

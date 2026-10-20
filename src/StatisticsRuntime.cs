@@ -36,9 +36,21 @@ namespace Sufficit.Statistics
         public StatisticsRuntime(
             IMetricsProvider metricsProvider,
             ILogger<StatisticsRuntime> logger)
+            : this(metricsProvider, logger, new MetricsQueueOptions()) { }
+
+        public StatisticsRuntime(IMetricsProvider metricsProvider, ILogger<StatisticsRuntime> logger, MetricsQueueOptions queueOptions)
         {
             _metricsProvider = metricsProvider ?? throw new ArgumentNullException(nameof(metricsProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            if (queueOptions == null) throw new ArgumentNullException(nameof(queueOptions));
+            _queueOptions = new MetricsQueueOptions
+            {
+                DirectoryPath = queueOptions.DirectoryPath, MaxDatabaseBytes = queueOptions.MaxDatabaseBytes,
+                MaxMetricBytes = queueOptions.MaxMetricBytes, BatchSize = queueOptions.BatchSize,
+                PollInterval = queueOptions.PollInterval, MaxRetryDelay = queueOptions.MaxRetryDelay
+            };
+            _queue = new LocalMetricsQueue(_queueOptions);
+            _queueWorker = Task.Run(RunQueueAsync);
         }
 
         #endregion
@@ -61,6 +73,7 @@ namespace Sufficit.Statistics
             {
                 // Don't log errors for OperationCanceledException as it's normal when operations are cancelled
                 _logger.LogDebug("Write operation was cancelled for metric {Measurement}", metric.Measurement);
+                throw;
             }
             catch (Exception ex)
             {
@@ -117,6 +130,7 @@ namespace Sufficit.Statistics
                     _logger.LogDebug("Bulk write operation was cancelled for {Count} metrics", count);
                 else
                     _logger.LogDebug("Bulk write operation was cancelled");
+                throw;
             }
             catch (Exception ex)
             {

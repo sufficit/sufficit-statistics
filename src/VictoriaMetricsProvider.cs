@@ -301,9 +301,9 @@ namespace Sufficit.Statistics
                 {
                     _discardedMetricsCount++;
                     _logger.LogDebug(
-                        "⚡ VictoriaMetricsProvider: Circuit breaker OPEN - discarding metric write #{Count}",
+                        "VictoriaMetricsProvider: Circuit breaker OPEN - rejecting metric write #{Count}",
                         _discardedMetricsCount);
-                    return;
+                    throw new HttpRequestException("VictoriaMetrics circuit breaker is open; delivery was not accepted.");
                 }
             }
 

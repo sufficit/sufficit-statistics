@@ -63,7 +63,7 @@ namespace Sufficit.Statistics
 
             // Build endpoints for InfluxDB v3
             var baseUrl = _config.Url.TrimEnd('/');
-            
+
             // Normalize precision for URL (InfluxDB expects abbreviated forms)
             var urlPrecision = _config.Precision switch
             {
@@ -73,27 +73,27 @@ namespace Sufficit.Statistics
                 "nanosecond" or "nanoseconds" or "ns" => "ns",
                 _ => "ms" // Default to milliseconds
             };
-            
+
             // InfluxDB v3 endpoints only (Sufficit infrastructure is v3-only)
             _possibleWriteEndpoints = new[]
             {
                 $"{baseUrl}/write?db={_config.Database}&precision={urlPrecision}",  // v3 write endpoint
             };
-            
+
             // InfluxDB v3 query endpoints only
             _possibleQueryEndpoints = new[]
             {
                 $"{baseUrl}/query?db={_config.Database}",           // v3 Flux/InfluxQL query endpoint
                 $"{baseUrl}/api/v3/query_sql",                      // v3 SQL query endpoint (alternative)
             };
-            
+
             // Start with the first endpoint
             _writeEndpoint = _possibleWriteEndpoints[0];
             _queryEndpoint = _possibleQueryEndpoints[0];
 
-            _logger.LogInformation("🔌 InfluxDbMetricsProvider v3 initialized - Database: {Database}, Endpoint: {WriteEndpoint}, Auth: {AuthScheme}", 
+            _logger.LogInformation("🔌 InfluxDbMetricsProvider v3 initialized - Database: {Database}, Endpoint: {WriteEndpoint}, Auth: {AuthScheme}",
                 _config.Database, _writeEndpoint, _config.AuthorizationScheme);
-                
+
             _logger.LogDebug("🔧 Alternative endpoints available - Write: [{WriteEndpoints}], Query: [{QueryEndpoints}]",
                 string.Join(", ", _possibleWriteEndpoints), string.Join(", ", _possibleQueryEndpoints));
         }
@@ -106,10 +106,10 @@ namespace Sufficit.Statistics
         /// Write a single metric value with optional tags
         /// </summary>
         public async Task WriteAsync<T>(
-            string measurement, 
-            T value, 
-            Dictionary<string, string>? tags = null, 
-            DateTime? timestamp = null, 
+            string measurement,
+            T value,
+            Dictionary<string, string>? tags = null,
+            DateTime? timestamp = null,
             CancellationToken cancellationToken = default) where T : struct
         {
             if (string.IsNullOrWhiteSpace(measurement))
@@ -124,7 +124,7 @@ namespace Sufficit.Statistics
             };
 
             await WriteMetricAsync(metric, cancellationToken);
-            
+
             _logger.LogDebug("📝 InfluxDbMetricsProvider: Single metric '{Measurement}' written successfully", measurement);
         }
 
@@ -135,9 +135,9 @@ namespace Sufficit.Statistics
         {
             if (metric == null)
                 throw new ArgumentNullException(nameof(metric));
-            
+
             await WriteMetricAsync(metric, cancellationToken);
-            
+
             _logger.LogDebug("📝 InfluxDbMetricsProvider: Metric '{Measurement}' written successfully", metric.Measurement);
         }
 
@@ -145,9 +145,9 @@ namespace Sufficit.Statistics
         /// Write multiple individual metrics in bulk operation
         /// </summary>
         public Task WriteBulkAsync(
-            IEnumerable<Metric> metrics, 
+            IEnumerable<Metric> metrics,
             CancellationToken cancellationToken = default)
-            => WriteBulkAsync(metrics, _config.BatchSize, cancellationToken);        
+            => WriteBulkAsync(metrics, _config.BatchSize, cancellationToken);
 
         /// <summary>
         /// Write multiple individual metrics in bulk operation with custom batch size
@@ -156,17 +156,17 @@ namespace Sufficit.Statistics
         /// <param name="batchSize">Custom batch size (optional). If null, uses configured BatchSize from settings</param>
         /// <param name="cancellationToken">Cancellation token</param>
         public async Task WriteBulkAsync(
-            IEnumerable<Metric> metrics, 
+            IEnumerable<Metric> metrics,
             int? batchSize = null,
             CancellationToken cancellationToken = default)
         {
             // Use custom batchSize or fall back to configured BatchSize
             var effectiveBatchSize = batchSize ?? _config.BatchSize;
-            
+
             // Validate batch size
             if (effectiveBatchSize <= 0)
             {
-                _logger.LogWarning("⚠️ Invalid batch size {BatchSize}, using default {DefaultBatchSize}", 
+                _logger.LogWarning("⚠️ Invalid batch size {BatchSize}, using default {DefaultBatchSize}",
                     effectiveBatchSize, _config.BatchSize);
                 effectiveBatchSize = _config.BatchSize;
             }
@@ -186,7 +186,7 @@ namespace Sufficit.Statistics
                 await WriteBatchAsync(batch, cancellationToken);
                 processedBatches++;
                 processedCount += batch.Count;
-                _logger.LogDebug("📦 InfluxDbMetricsProvider: Batch {CurrentBatch} processed ({ProcessedCount} metrics total)", 
+                _logger.LogDebug("📦 InfluxDbMetricsProvider: Batch {CurrentBatch} processed ({ProcessedCount} metrics total)",
                     processedBatches, processedCount);
                 batch.Clear();
             }
@@ -196,7 +196,7 @@ namespace Sufficit.Statistics
                 await WriteBatchAsync(batch, cancellationToken);
                 processedBatches++;
                 processedCount += batch.Count;
-                _logger.LogDebug("📦 InfluxDbMetricsProvider: Batch {CurrentBatch} processed ({ProcessedCount} metrics total)", 
+                _logger.LogDebug("📦 InfluxDbMetricsProvider: Batch {CurrentBatch} processed ({ProcessedCount} metrics total)",
                     processedBatches, processedCount);
             }
 
@@ -205,7 +205,7 @@ namespace Sufficit.Statistics
                 return;
             }
 
-            _logger.LogDebug("✅ InfluxDbMetricsProvider: Successfully bulk inserted {MetricCount} metrics in {BatchCount} batches (batch size: {BatchSize})", 
+            _logger.LogDebug("✅ InfluxDbMetricsProvider: Successfully bulk inserted {MetricCount} metrics in {BatchCount} batches (batch size: {BatchSize})",
                 processedCount, processedBatches, effectiveBatchSize);
         }
 
@@ -214,7 +214,7 @@ namespace Sufficit.Statistics
         /// Supports InfluxDB v3 SQL and InfluxQL endpoints
         /// </summary>
         public async Task<IEnumerable<Metric>> QueryAsync(
-            string query, 
+            string query,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -223,7 +223,7 @@ namespace Sufficit.Statistics
             // Determine content type based on query type and endpoint
             string contentType;
             StringContent content;
-            
+
             // InfluxDB v3: Use Flux queries with appropriate content type
             if (!query.Contains("SELECT") && !query.Contains("FROM"))
             {
@@ -250,24 +250,24 @@ namespace Sufficit.Statistics
                 contentType = "application/vnd.flux";
                 content = new StringContent(query, Encoding.UTF8, contentType);
             }
-            
+
             try
             {
                 var response = await _httpClient.PostAsync(_queryEndpoint, content, cancellationToken);
                 response.EnsureSuccessStatusCode();
 
                 var responseContent = await response.Content.ReadAsStringAsync();
-                
+
                 // Parse response based on content type detection (not just endpoint)
                 IEnumerable<Metric> results;
-                
+
                 // Detect response format
                 var trimmedResponse = responseContent.TrimStart();
-                bool isCsvResponse = trimmedResponse.StartsWith("_measurement") || 
-                                   (trimmedResponse.Contains("_measurement") && 
-                                    trimmedResponse.Contains("_time") && 
+                bool isCsvResponse = trimmedResponse.StartsWith("_measurement") ||
+                                   (trimmedResponse.Contains("_measurement") &&
+                                    trimmedResponse.Contains("_time") &&
                                     !trimmedResponse.StartsWith("{"));
-                
+
                 if (isCsvResponse)
                 {
                     // CSV response (InfluxDB v3 default format)
@@ -287,36 +287,36 @@ namespace Sufficit.Statistics
                     results = ParseFluxResponse(responseContent);
                 }
 
-                _logger.LogDebug("🔍 InfluxDbMetricsProvider: Query executed successfully on {Endpoint}, returned {ResultCount} metrics", 
+                _logger.LogDebug("🔍 InfluxDbMetricsProvider: Query executed successfully on {Endpoint}, returned {ResultCount} metrics",
                     _queryEndpoint, results.Count());
                 return results;
             }
             catch (HttpRequestException ex) when (ex.Message.Contains("404") || ex.Message.Contains("400"))
             {
                 // Try endpoint discovery for query endpoints
-                _logger.LogWarning("🔄 InfluxDbMetricsProvider: Query endpoint '{Endpoint}' failed with {StatusCode}, attempting endpoint discovery", 
+                _logger.LogWarning("🔄 InfluxDbMetricsProvider: Query endpoint '{Endpoint}' failed with {StatusCode}, attempting endpoint discovery",
                     _queryEndpoint, ex.Message.Contains("404") ? "404" : "400");
-                
+
                 if (await TryDiscoverCorrectQueryEndpoint(content, cancellationToken))
                 {
                     _logger.LogInformation("🔄 InfluxDB query endpoint discovered - switching to: {NewEndpoint}", _queryEndpoint);
-                    
+
                     // Retry with new endpoint
                     var retryResponse = await _httpClient.PostAsync(_queryEndpoint, content, cancellationToken);
                     retryResponse.EnsureSuccessStatusCode();
 
                     var retryResponseContent = await retryResponse.Content.ReadAsStringAsync();
-                    
+
                     // Parse response based on content type detection (not just endpoint)
                     IEnumerable<Metric> results;
-                    
+
                     // Detect response format
                     var trimmedRetryResponse = retryResponseContent.TrimStart();
-                    bool isCsvRetryResponse = trimmedRetryResponse.StartsWith("_measurement") || 
-                                             (trimmedRetryResponse.Contains("_measurement") && 
-                                              trimmedRetryResponse.Contains("_time") && 
+                    bool isCsvRetryResponse = trimmedRetryResponse.StartsWith("_measurement") ||
+                                             (trimmedRetryResponse.Contains("_measurement") &&
+                                              trimmedRetryResponse.Contains("_time") &&
                                               !trimmedRetryResponse.StartsWith("{"));
-                    
+
                     if (isCsvRetryResponse)
                     {
                         // CSV response (InfluxDB v3 default format)
@@ -326,7 +326,7 @@ namespace Sufficit.Statistics
                     else if (_queryEndpoint.Contains("/query?db=") || _queryEndpoint.Contains("/influxql"))
                     {
                         // JSON response for InfluxQL endpoints
-                        _logger.LogDebug("🔍 InfluxDbMetricsProvider: Raw InfluxQL response after endpoint discovery (first 500 chars): {Response}", 
+                        _logger.LogDebug("🔍 InfluxDbMetricsProvider: Raw InfluxQL response after endpoint discovery (first 500 chars): {Response}",
                             retryResponseContent.Length > 500 ? retryResponseContent.Substring(0, 500) + "..." : retryResponseContent);
                         results = ParseInfluxQlResponse(retryResponseContent);
                     }
@@ -336,7 +336,7 @@ namespace Sufficit.Statistics
                         results = ParseFluxResponse(retryResponseContent);
                     }
 
-                    _logger.LogDebug("🔍 InfluxDbMetricsProvider: Query executed successfully after endpoint discovery on {Endpoint}, returned {ResultCount} metrics", 
+                    _logger.LogDebug("🔍 InfluxDbMetricsProvider: Query executed successfully after endpoint discovery on {Endpoint}, returned {ResultCount} metrics",
                         _queryEndpoint, results.Count());
                     return results;
                 }
@@ -344,7 +344,7 @@ namespace Sufficit.Statistics
                 {
                     _logger.LogWarning("⚠️ InfluxDB query endpoint discovery failed - no working endpoint found");
                 }
-                
+
                 // If discovery failed, throw original exception
                 throw;
             }
@@ -360,11 +360,11 @@ namespace Sufficit.Statistics
         /// Converts MetricsSearchParameters to appropriate query format based on endpoint
         /// </summary>
         public async Task<IEnumerable<Metric>> SearchAsync(
-            MetricsSearchParameters parameters, 
+            MetricsSearchParameters parameters,
             CancellationToken cancellationToken = default)
         {
             string query;
-            
+
             // Build query based on endpoint type (InfluxDB v3)
             // Prioritize Flux queries for better performance
             if (_queryEndpoint.Contains("/sql"))
@@ -379,7 +379,7 @@ namespace Sufficit.Statistics
             {
                 query = BuildFluxQuery(parameters);
             }
-            
+
             try
             {
                 return await QueryAsync(query, cancellationToken);
@@ -388,7 +388,7 @@ namespace Sufficit.Statistics
             {
                 // Bucket doesn't exist - try to find available buckets and log helpful info
                 _logger.LogWarning("🔄 InfluxDbMetricsProvider: Bucket '{Database}' not found, attempting to discover available buckets", _config.Database);
-                
+
                 try
                 {
                     string bucketsQuery;
@@ -408,18 +408,18 @@ namespace Sufficit.Statistics
                         // Flux query for v2 compatibility
                         bucketsQuery = "buckets() |> filter(fn: (r) => r.name != \"\") |> yield()";
                     }
-                    
+
                     var buckets = await QueryAsync(bucketsQuery, cancellationToken);
-                    
+
                     var bucketNames = buckets.Select(b => b.Measurement).Distinct().ToList();
-                    _logger.LogError("❌ InfluxDbMetricsProvider: Available buckets in InfluxDB: [{Buckets}]. Configure 'Database' setting to match an existing bucket.", 
+                    _logger.LogError("❌ InfluxDbMetricsProvider: Available buckets in InfluxDB: [{Buckets}]. Configure 'Database' setting to match an existing bucket.",
                         string.Join(", ", bucketNames));
                 }
                 catch (Exception bucketEx)
                 {
                     _logger.LogError(bucketEx, "❌ InfluxDbMetricsProvider: Failed to list available buckets. Check InfluxDB connection and permissions.");
                 }
-                
+
                 // Return empty result instead of throwing
                 _logger.LogWarning("🔄 InfluxDbMetricsProvider: Returning empty result due to missing bucket");
                 return Array.Empty<Metric>();
@@ -440,17 +440,17 @@ namespace Sufficit.Statistics
             {
                 var healthEndpoint = $"{_config.Url.TrimEnd('/')}/ping";
                 var response = await _httpClient.GetAsync(healthEndpoint, cancellationToken);
-                
+
                 if (response.IsSuccessStatusCode)
                 {
                     _logger.LogDebug("✅ InfluxDbMetricsProvider: Health check passed");
-                    
+
                     // Test authentication by attempting a simple write test
                     await TestAuthentication(cancellationToken);
-                    
+
                     return true;
                 }
-                
+
                 _logger.LogWarning("⚠️ InfluxDbMetricsProvider: Health check failed with status {StatusCode}", response.StatusCode);
                 return false;
             }
@@ -506,12 +506,12 @@ namespace Sufficit.Statistics
         {
             var lineProtocolLines = metrics.Select(ConvertToLineProtocol);
             var lineProtocol = string.Join("\n", lineProtocolLines);
-            
+
             // Log payload size information
             var payloadSizeKB = Encoding.UTF8.GetByteCount(lineProtocol) / 1024.0;
-            _logger.LogDebug("📦 InfluxDB batch: {MetricCount} metrics, {PayloadSize:F1} KB payload", 
+            _logger.LogDebug("📦 InfluxDB batch: {MetricCount} metrics, {PayloadSize:F1} KB payload",
                 metrics.Count, payloadSizeKB);
-            
+
             await WriteLineProtocolAsync(lineProtocol, cancellationToken);
         }
 
@@ -526,11 +526,11 @@ namespace Sufficit.Statistics
                 if (DateTime.UtcNow < _circuitBreakerOpenUntil)
                 {
                     _discardedMetricsCount++;
-                    _logger.LogDebug("⚡ Circuit breaker OPEN - Discarding metric write #{Count} (reopens in {Seconds}s)", 
+                    _logger.LogDebug("⚡ Circuit breaker OPEN - Rejecting metric write #{Count} (reopens in {Seconds}s)",
                         _discardedMetricsCount, (_circuitBreakerOpenUntil - DateTime.UtcNow).TotalSeconds);
-                    return; // Discard write silently
+                    throw new HttpRequestException("InfluxDB circuit breaker is open; delivery was not accepted.");
                 }
-                
+
                 // If circuit was open and timeout expired, try health check
                 if (_circuitBreakerOpenUntil > DateTime.MinValue && DateTime.UtcNow >= _circuitBreakerOpenUntil)
                 {
@@ -544,17 +544,17 @@ namespace Sufficit.Statistics
             using var content = new StringContent(lineProtocol, Encoding.UTF8, "application/x-line-protocol");
             const int maxRetries = 3;
             const int baseDelayMs = 1000;
-            
+
             for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
                 try
                 {
                     var response = await _httpClient.PostAsync(_writeEndpoint, content, cancellationToken);
-                    
+
                     if (!response.IsSuccessStatusCode)
                     {
                         var responseBody = await response.Content.ReadAsStringAsync();
-                        
+
                         // Try endpoint discovery for 401 errors (try discovery on every 401, not just first attempt)
                         if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                         {
@@ -568,28 +568,28 @@ namespace Sufficit.Statistics
                                 _logger.LogWarning("⚠️ InfluxDB endpoint discovery failed - no working endpoint found");
                             }
                         }
-                        
+
                         // Enhanced logging for authentication issues
                         if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                         {
                             var authHeader = _httpClient.DefaultRequestHeaders.Authorization?.ToString() ?? "MISSING";
-                            _logger.LogError("❌ InfluxDB authentication failed - Status: {StatusCode}, Auth Header: {AuthHeader}, Endpoint: {Endpoint}, Response: {Response}", 
+                            _logger.LogError("❌ InfluxDB authentication failed - Status: {StatusCode}, Auth Header: {AuthHeader}, Endpoint: {Endpoint}, Response: {Response}",
                                 response.StatusCode, authHeader.Substring(0, Math.Min(20, authHeader.Length)) + "...", _writeEndpoint, responseBody);
                         }
                         else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
                         {
-                            _logger.LogError("❌ InfluxDB Bad Request (400) - Status: {StatusCode}, Response: {Response}, Endpoint: {Endpoint}", 
+                            _logger.LogError("❌ InfluxDB Bad Request (400) - Status: {StatusCode}, Response: {Response}, Endpoint: {Endpoint}",
                                 response.StatusCode, responseBody, _writeEndpoint);
                         }
                         else
                         {
-                            _logger.LogError("❌ InfluxDB write failed - Status: {StatusCode}, Response: {Response}, Endpoint: {Endpoint}", 
+                            _logger.LogError("❌ InfluxDB write failed - Status: {StatusCode}, Response: {Response}, Endpoint: {Endpoint}",
                                 response.StatusCode, responseBody, _writeEndpoint);
                         }
                     }
-                    
+
                     response.EnsureSuccessStatusCode();
-                    
+
                     // Success - close circuit breaker and reset failure counter
                     lock (_circuitBreakerLock)
                     {
@@ -597,20 +597,20 @@ namespace Sufficit.Statistics
                         {
                             if (_discardedMetricsCount > 0)
                             {
-                                _logger.LogWarning("✅ InfluxDB connection restored - Circuit breaker CLOSED - {DiscardedCount} metrics were discarded during downtime", 
+                                _logger.LogWarning("✅ InfluxDB connection restored - Circuit breaker CLOSED - {DiscardedCount} metrics were discarded during downtime",
                                     _discardedMetricsCount);
                             }
                             else
                             {
                                 _logger.LogInformation("✅ InfluxDB connection restored - Circuit breaker CLOSED");
                             }
-                            
+
                             _consecutiveFailures = 0;
                             _circuitBreakerOpenUntil = DateTime.MinValue;
                             _discardedMetricsCount = 0;
                         }
                     }
-                    
+
                     if (attempt > 1)
                     {
                         _logger.LogDebug("✅ InfluxDB write succeeded on attempt {Attempt}", attempt);
@@ -620,19 +620,19 @@ namespace Sufficit.Statistics
                 catch (Exception ex) when (attempt < maxRetries && IsRetryableException(ex))
                 {
                     var delay = TimeSpan.FromMilliseconds(baseDelayMs * Math.Pow(2, attempt - 1));
-                    
+
                     // Don't log warnings for OperationCanceledException as it's normal when operations are cancelled
                     if (ex is OperationCanceledException)
                     {
-                        _logger.LogDebug("🔄 InfluxDB write cancelled on attempt {Attempt}/{MaxRetries}, operation was cancelled by user or timeout", 
+                        _logger.LogDebug("🔄 InfluxDB write cancelled on attempt {Attempt}/{MaxRetries}, operation was cancelled by user or timeout",
                             attempt, maxRetries);
                     }
                     else
                     {
-                        _logger.LogWarning("⚠️ InfluxDB write failed on attempt {Attempt}/{MaxRetries}, retrying in {Delay}ms - {Error}", 
+                        _logger.LogWarning("⚠️ InfluxDB write failed on attempt {Attempt}/{MaxRetries}, retrying in {Delay}ms - {Error}",
                             attempt, maxRetries, delay.TotalMilliseconds, ex.Message);
                     }
-                    
+
                     await Task.Delay(delay, cancellationToken);
                 }
                 catch (Exception ex)
@@ -640,23 +640,23 @@ namespace Sufficit.Statistics
                     // Don't log errors for OperationCanceledException as it's normal when operations are cancelled
                     if (ex is OperationCanceledException)
                     {
-                        _logger.LogDebug("❌ InfluxDbMetricsProvider: Write cancelled after {Attempt} attempts - operation was cancelled by user or timeout", 
+                        _logger.LogDebug("❌ InfluxDbMetricsProvider: Write cancelled after {Attempt} attempts - operation was cancelled by user or timeout",
                             attempt);
                     }
                     else
                     {
-                        _logger.LogError(ex, "❌ InfluxDbMetricsProvider: Write failed on attempt {Attempt}/{MaxRetries} - {LineProtocol}", 
+                        _logger.LogError(ex, "❌ InfluxDbMetricsProvider: Write failed on attempt {Attempt}/{MaxRetries} - {LineProtocol}",
                             attempt, maxRetries, lineProtocol.Substring(0, Math.Min(lineProtocol.Length, 200)));
-                        
+
                         // Open circuit breaker after consecutive failures
                         lock (_circuitBreakerLock)
                         {
                             _consecutiveFailures++;
-                            
+
                             if (_consecutiveFailures >= CIRCUIT_BREAKER_FAILURE_THRESHOLD)
                             {
                                 _circuitBreakerOpenUntil = DateTime.UtcNow.Add(CIRCUIT_BREAKER_TIMEOUT);
-                                _logger.LogWarning("⚡ Circuit breaker OPENED after {Failures} consecutive failures - Metrics will be discarded for {Minutes} minutes", 
+                                _logger.LogWarning("⚡ Circuit breaker OPENED after {Failures} consecutive failures - Metrics will be discarded for {Minutes} minutes",
                                     _consecutiveFailures, CIRCUIT_BREAKER_TIMEOUT.TotalMinutes);
                             }
                         }
@@ -683,19 +683,19 @@ namespace Sufficit.Statistics
         private async Task<bool> TryDiscoverCorrectEndpoint(StringContent testContent, CancellationToken cancellationToken)
         {
             _logger.LogDebug("🔍 InfluxDB endpoint discovery - testing {Count} alternatives", _possibleWriteEndpoints.Length);
-            
+
             // First, try to detect InfluxDB version for better endpoint prioritization
             await TryDetectInfluxDbVersion(cancellationToken);
-            
+
             // Test token validity before trying endpoints
             await TestTokenValidity(cancellationToken);
-            
+
             // Log authentication details for debugging
             var authHeader = _httpClient.DefaultRequestHeaders.Authorization;
             if (authHeader != null)
             {
-                var tokenPreview = authHeader.Parameter?.Length > 10 
-                    ? authHeader.Parameter.Substring(0, 10) + "..." 
+                var tokenPreview = authHeader.Parameter?.Length > 10
+                    ? authHeader.Parameter.Substring(0, 10) + "..."
                     : authHeader.Parameter;
                 _logger.LogDebug("🔐 Using auth: {Scheme} {Token}", authHeader.Scheme, tokenPreview);
             }
@@ -703,29 +703,29 @@ namespace Sufficit.Statistics
             {
                 _logger.LogWarning("⚠️ No authentication header found in HttpClient!");
             }
-            
+
             // Try all endpoints to find one that works
             for (int i = 0; i < _possibleWriteEndpoints.Length; i++)
             {
                 var testEndpoint = _possibleWriteEndpoints[i];
-                
+
                 // Skip current failing endpoint
                 if (testEndpoint == _writeEndpoint)
                 {
                     _logger.LogDebug("⏭️ Skipping current failing endpoint: {Endpoint}", testEndpoint);
                     continue;
                 }
-                
+
                 try
                 {
                     _logger.LogDebug("🧪 Testing endpoint: {Endpoint}", testEndpoint);
-                    
+
                     // Create a copy of the content with proper InfluxDB v3 Content-Type
                     var originalContent = await testContent.ReadAsStringAsync();
                     var testContentCopy = new StringContent(originalContent, Encoding.UTF8, "application/x-line-protocol");
-                    
+
                     var response = await _httpClient.PostAsync(testEndpoint, testContentCopy, cancellationToken);
-                    
+
                     if (response.IsSuccessStatusCode)
                     {
                         // Found working endpoint!
@@ -733,7 +733,7 @@ namespace Sufficit.Statistics
                         _logger.LogInformation("✅ InfluxDB endpoint discovery successful - found working endpoint: {Endpoint}", testEndpoint);
                         return true;
                     }
-                    
+
                     _logger.LogDebug("❌ Endpoint {Endpoint} failed with status: {StatusCode}", testEndpoint, response.StatusCode);
                 }
                 catch (Exception ex)
@@ -741,7 +741,7 @@ namespace Sufficit.Statistics
                     _logger.LogDebug("❌ Endpoint {Endpoint} failed with exception: {Exception}", testEndpoint, ex.Message);
                 }
             }
-            
+
             _logger.LogWarning("❌ All endpoint alternatives failed during discovery");
             return false;
         }
@@ -752,19 +752,19 @@ namespace Sufficit.Statistics
         private async Task<bool> TryDiscoverCorrectQueryEndpoint(StringContent testContent, CancellationToken cancellationToken)
         {
             _logger.LogDebug("🔍 InfluxDB query endpoint discovery - testing {Count} alternatives", _possibleQueryEndpoints.Length);
-            
+
             // First, try to detect InfluxDB version for better endpoint prioritization
             await TryDetectInfluxDbVersion(cancellationToken);
-            
+
             // Test token validity before trying endpoints
             await TestTokenValidity(cancellationToken);
-            
+
             // Log authentication details for debugging
             var authHeader = _httpClient.DefaultRequestHeaders.Authorization;
             if (authHeader != null)
             {
-                var tokenPreview = authHeader.Parameter?.Length > 10 
-                    ? authHeader.Parameter.Substring(0, 10) + "..." 
+                var tokenPreview = authHeader.Parameter?.Length > 10
+                    ? authHeader.Parameter.Substring(0, 10) + "..."
                     : authHeader.Parameter;
                 _logger.LogDebug("🔐 Using auth: {Scheme} {Token}", authHeader.Scheme, tokenPreview);
             }
@@ -772,27 +772,27 @@ namespace Sufficit.Statistics
             {
                 _logger.LogWarning("⚠️ No authentication header found in HttpClient!");
             }
-            
+
             // Try all query endpoints to find one that works
             for (int i = 0; i < _possibleQueryEndpoints.Length; i++)
             {
                 var testEndpoint = _possibleQueryEndpoints[i];
-                
+
                 // Skip current failing endpoint
                 if (testEndpoint == _queryEndpoint)
                 {
                     _logger.LogDebug("⏭️ Skipping current failing query endpoint: {Endpoint}", testEndpoint);
                     continue;
                 }
-                
+
                 try
                 {
                     _logger.LogDebug("🧪 Testing query endpoint: {Endpoint}", testEndpoint);
-                    
+
                     // Create a copy of the content with appropriate Content-Type based on endpoint
                     var originalContent = await testContent.ReadAsStringAsync();
                     StringContent testContentCopy;
-                    
+
                     if (testEndpoint.Contains("/sql"))
                     {
                         // For SQL endpoint, wrap query in JSON
@@ -809,9 +809,9 @@ namespace Sufficit.Statistics
                         // For Flux queries
                         testContentCopy = new StringContent(originalContent, Encoding.UTF8, "application/vnd.flux");
                     }
-                    
+
                     var response = await _httpClient.PostAsync(testEndpoint, testContentCopy, cancellationToken);
-                    
+
                     if (response.IsSuccessStatusCode)
                     {
                         // Found working endpoint!
@@ -819,7 +819,7 @@ namespace Sufficit.Statistics
                         _logger.LogInformation("✅ InfluxDB query endpoint discovery successful - found working endpoint: {Endpoint}", testEndpoint);
                         return true;
                     }
-                    
+
                     _logger.LogDebug("❌ Query endpoint {Endpoint} failed with status: {StatusCode}", testEndpoint, response.StatusCode);
                 }
                 catch (Exception ex)
@@ -827,7 +827,7 @@ namespace Sufficit.Statistics
                     _logger.LogDebug("❌ Query endpoint {Endpoint} failed with exception: {Exception}", testEndpoint, ex.Message);
                 }
             }
-            
+
             _logger.LogWarning("❌ All query endpoint alternatives failed during discovery");
             return false;
         }
@@ -840,32 +840,32 @@ namespace Sufficit.Statistics
             try
             {
                 var baseUrl = _httpClient.BaseAddress?.ToString().TrimEnd('/') ?? "http://influx.sufficit.com.br:8086";
-                
+
                 // Test endpoints that should work with valid tokens
                 var testEndpoints = new[]
                 {
                     "/health",           // InfluxDB v3 health endpoint
-                    "/api/v2/health",    // InfluxDB v2 health endpoint  
+                    "/api/v2/health",    // InfluxDB v2 health endpoint
                     "/ping"              // Universal ping endpoint
                 };
-                
+
                 _logger.LogDebug("🧪 Testing token validity against health endpoints...");
-                
+
                 foreach (var endpoint in testEndpoints)
                 {
                     try
                     {
                         var testUrl = $"{baseUrl}{endpoint}";
                         _logger.LogDebug("🔍 Testing token against: {Endpoint}", testUrl);
-                        
+
                         var response = await _httpClient.GetAsync(testUrl, cancellationToken);
-                        
-                        _logger.LogDebug("📊 Token test result for {Endpoint}: {StatusCode}", 
+
+                        _logger.LogDebug("📊 Token test result for {Endpoint}: {StatusCode}",
                             endpoint, response.StatusCode);
-                            
+
                         if (response.IsSuccessStatusCode)
                         {
-                            _logger.LogInformation("✅ Token appears valid - {Endpoint} returned {StatusCode}", 
+                            _logger.LogInformation("✅ Token appears valid - {Endpoint} returned {StatusCode}",
                                 endpoint, response.StatusCode);
                             return;
                         }
@@ -879,7 +879,7 @@ namespace Sufficit.Statistics
                         _logger.LogDebug("❌ Token test failed for {Endpoint}: {Exception}", endpoint, ex.Message);
                     }
                 }
-                
+
                 _logger.LogError("❌ Token appears to be invalid or has insufficient permissions for ALL test endpoints");
             }
             catch (Exception ex)
@@ -897,13 +897,13 @@ namespace Sufficit.Statistics
             {
                 var baseUrl = _httpClient.BaseAddress?.ToString().TrimEnd('/') ?? "http://influx.sufficit.com.br:8086";
                 var pingUrl = $"{baseUrl}/ping";
-                
+
                 _logger.LogDebug("🏓 Pinging InfluxDB to detect version: {PingUrl}", pingUrl);
-                
+
                 var response = await _httpClient.GetAsync(pingUrl, cancellationToken);
-                
+
                 _logger.LogDebug("📡 InfluxDB ping response status: {StatusCode}", response.StatusCode);
-                
+
                 // Try to get version from headers
                 string version = "Unknown";
                 if (response.Headers.Contains("X-Influxdb-Version"))
@@ -914,16 +914,16 @@ namespace Sufficit.Statistics
                 {
                     version = response.Headers.GetValues("X-Influxdb-Build").FirstOrDefault() ?? "Unknown";
                 }
-                
+
                 _logger.LogInformation("📡 InfluxDB version detected: {Version} (Port: {Port})", version, _httpClient.BaseAddress?.Port ?? 8086);
-                
+
                 // Log all headers for debugging
                 _logger.LogDebug("📋 InfluxDB ping response headers:");
                 foreach (var header in response.Headers)
                 {
                     _logger.LogDebug("   {HeaderName}: {HeaderValue}", header.Key, string.Join(", ", header.Value));
                 }
-                
+
                 if (version.StartsWith("1."))
                 {
                     _logger.LogInformation("🔍 Detected InfluxDB v1 - prioritizing legacy endpoints");
@@ -954,7 +954,7 @@ namespace Sufficit.Statistics
         private string ConvertToLineProtocol(Metric metric)
         {
             var sb = new StringBuilder();
-            
+
             // Measurement name (escaped if necessary)
             sb.Append(EscapeLineProtocol(metric.Measurement ?? "unknown"));
 
@@ -972,7 +972,7 @@ namespace Sufficit.Statistics
             // Fields
             if (metric.Fields?.Any() == true)
             {
-                var fieldPairs = metric.Fields.Select(field => 
+                var fieldPairs = metric.Fields.Select(field =>
                     $"{EscapeLineProtocol(field.Key)}={FormatFieldValue(field.Value)}");
                 sb.Append(string.Join(",", fieldPairs));
             }
@@ -998,7 +998,7 @@ namespace Sufficit.Statistics
         private string EscapeLineProtocol(string value)
         {
             if (string.IsNullOrEmpty(value)) return value;
-            
+
             return value
                 .Replace("\\", "\\\\")  // Escape backslashes first
                 .Replace(",", "\\,")    // Escape commas
@@ -1031,7 +1031,7 @@ namespace Sufficit.Statistics
         {
             var utcTimestamp = timestamp.Kind == DateTimeKind.Utc ? timestamp : timestamp.ToUniversalTime();
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            
+
             return _config.Precision switch
             {
                 "s" or "second" or "seconds" => (long)(utcTimestamp - epoch).TotalSeconds,
@@ -1048,10 +1048,10 @@ namespace Sufficit.Statistics
         private string BuildSqlQuery(MetricsSearchParameters parameters)
         {
             var query = new StringBuilder();
-            
+
             // Basic SELECT with common fields
             query.Append("SELECT time, ");
-            
+
             // Add specific fields if requested
             if (parameters.Fields?.Any() == true)
             {
@@ -1061,7 +1061,7 @@ namespace Sufficit.Statistics
             {
                 query.Append("*"); // Select all fields if none specified
             }
-            
+
             // FROM clause with database/table
             if (parameters.Measurement?.IsValid == true)
             {
@@ -1073,9 +1073,9 @@ namespace Sufficit.Statistics
                 // This is a limitation - SQL needs specific table names
                 query.Append($" FROM \"{_config.Database}\".\"*\""); // May not work, but attempt wildcard
             }
-            
+
             var whereConditions = new List<string>();
-            
+
             // Time range conditions
             if (parameters.Timestamp?.IsValid == true)
             {
@@ -1084,7 +1084,7 @@ namespace Sufficit.Statistics
                     var startTime = parameters.Timestamp.Start.Value.ToString("yyyy-MM-dd HH:mm:ss");
                     whereConditions.Add($"time >= '{startTime}'");
                 }
-                
+
                 if (parameters.Timestamp.End.HasValue)
                 {
                     var endTime = parameters.Timestamp.End.Value.ToString("yyyy-MM-dd HH:mm:ss");
@@ -1096,7 +1096,7 @@ namespace Sufficit.Statistics
                 // Default to last 24 hours
                 whereConditions.Add("time >= NOW() - INTERVAL '24 hours'");
             }
-            
+
             // Tag filters
             if (parameters.Tags?.Any() == true)
             {
@@ -1108,23 +1108,23 @@ namespace Sufficit.Statistics
                     }
                 }
             }
-            
+
             // Add WHERE clause if we have conditions
             if (whereConditions.Any())
             {
                 query.Append(" WHERE ");
                 query.Append(string.Join(" AND ", whereConditions));
             }
-            
+
             // Order by time
             query.Append(" ORDER BY time DESC");
-            
+
             // Limit if specified
             if (parameters.Limit.HasValue && parameters.Limit.Value > 0)
             {
                 query.Append($" LIMIT {parameters.Limit.Value}");
             }
-            
+
             return query.ToString();
         }
 
@@ -1135,7 +1135,7 @@ namespace Sufficit.Statistics
         private string BuildFluxQuery(MetricsSearchParameters parameters)
         {
             var query = new StringBuilder();
-            
+
             // InfluxDB v3: Use bucket syntax with database name
             query.AppendLine($"from(bucket: \"{_config.Database}\")");
 
@@ -1147,7 +1147,7 @@ namespace Sufficit.Statistics
                     var startTime = parameters.Timestamp.Start.Value.ToString("yyyy-MM-ddTHH:mm:ssZ");
                     query.AppendLine($"  |> range(start: {startTime})");
                 }
-                
+
                 if (parameters.Timestamp.End.HasValue)
                 {
                     var endTime = parameters.Timestamp.End.Value.ToString("yyyy-MM-ddTHH:mm:ssZ");
@@ -1211,7 +1211,7 @@ namespace Sufficit.Statistics
         private IEnumerable<Metric> ParseInfluxQlResponse(string jsonResponse)
         {
             var metrics = new List<Metric>();
-            
+
             try
             {
                 // Validate response is not empty and doesn't start with invalid characters
@@ -1220,74 +1220,74 @@ namespace Sufficit.Statistics
                     _logger.LogWarning("⚠️ InfluxDbMetricsProvider: Received empty InfluxQL response");
                     return metrics;
                 }
-                
+
                 // Check for common non-JSON responses (but allow valid CSV responses)
                 var trimmedResponse = jsonResponse.TrimStart();
-                
+
                 // Allow CSV responses that start with _measurement (InfluxDB v3 format)
-                bool isValidCsvResponse = trimmedResponse.StartsWith("_measurement") && 
-                                        trimmedResponse.Contains("_time") && 
-                                        trimmedResponse.Contains("_field") && 
+                bool isValidCsvResponse = trimmedResponse.StartsWith("_measurement") &&
+                                        trimmedResponse.Contains("_time") &&
+                                        trimmedResponse.Contains("_field") &&
                                         trimmedResponse.Contains("_value");
-                
-                if (!isValidCsvResponse && 
-                    (trimmedResponse.StartsWith("_") || 
-                     trimmedResponse.StartsWith("-") || 
-                     trimmedResponse.StartsWith("{") == false && 
-                     (trimmedResponse.Contains("error") || 
-                      trimmedResponse.Contains("Error") || 
+
+                if (!isValidCsvResponse &&
+                    (trimmedResponse.StartsWith("_") ||
+                     trimmedResponse.StartsWith("-") ||
+                     trimmedResponse.StartsWith("{") == false &&
+                     (trimmedResponse.Contains("error") ||
+                      trimmedResponse.Contains("Error") ||
                       trimmedResponse.Contains("ERROR") ||
                       trimmedResponse.Contains("not found") ||
                       trimmedResponse.Contains("unauthorized") ||
                       trimmedResponse.Contains("forbidden"))))
                 {
-                    _logger.LogError("❌ InfluxDbMetricsProvider: Response appears to be invalid - doesn't start with '{{' or valid CSV header, and contains error keywords. This might be an error message. Full response: {Response}", 
+                    _logger.LogError("❌ InfluxDbMetricsProvider: Response appears to be invalid - doesn't start with '{{' or valid CSV header, and contains error keywords. This might be an error message. Full response: {Response}",
                         jsonResponse.Length > 1000 ? jsonResponse.Substring(0, 1000) + "..." : jsonResponse);
                     return metrics;
                 }
-                
+
                 // Check if response looks like HTML (error page)
-                if (trimmedResponse.StartsWith("<") || 
-                    trimmedResponse.Contains("<!DOCTYPE") || 
+                if (trimmedResponse.StartsWith("<") ||
+                    trimmedResponse.Contains("<!DOCTYPE") ||
                     trimmedResponse.Contains("<html") ||
                     trimmedResponse.Contains("<body"))
                 {
-                    _logger.LogError("❌ InfluxDbMetricsProvider: Response appears to be HTML error page instead of JSON. Full response: {Response}", 
+                    _logger.LogError("❌ InfluxDbMetricsProvider: Response appears to be HTML error page instead of JSON. Full response: {Response}",
                         jsonResponse.Length > 1000 ? jsonResponse.Substring(0, 1000) + "..." : jsonResponse);
                     return metrics;
                 }
-                
+
                 using var document = JsonDocument.Parse(jsonResponse);
                 var root = document.RootElement;
-                
+
                 if (!root.TryGetProperty("results", out var results) || results.ValueKind != JsonValueKind.Array)
                 {
-                    _logger.LogWarning("⚠️ InfluxDbMetricsProvider: InfluxQL response missing 'results' array or invalid format. Root properties: {Properties}", 
+                    _logger.LogWarning("⚠️ InfluxDbMetricsProvider: InfluxQL response missing 'results' array or invalid format. Root properties: {Properties}",
                         string.Join(", ", root.EnumerateObject().Select(p => p.Name)));
                     return metrics;
                 }
-                
+
                 foreach (var result in results.EnumerateArray())
                 {
                     if (!result.TryGetProperty("series", out var series) || series.ValueKind != JsonValueKind.Array)
                         continue;
-                        
+
                     foreach (var serie in series.EnumerateArray())
                     {
                         if (!serie.TryGetProperty("name", out var nameElement) ||
                             !serie.TryGetProperty("columns", out var columnsElement) ||
                             !serie.TryGetProperty("values", out var valuesElement))
                             continue;
-                            
+
                         var measurementName = nameElement.GetString() ?? "unknown";
                         var columns = new List<string>();
-                        
+
                         // Parse columns
                         foreach (var column in columnsElement.EnumerateArray())
                         {
                             columns.Add(column.GetString() ?? "");
                         }
-                        
+
                         // Parse values (each row)
                         foreach (var valueRow in valuesElement.EnumerateArray())
                         {
@@ -1298,14 +1298,14 @@ namespace Sufficit.Statistics
                                 Fields = new Dictionary<string, object>(),
                                 Timestamp = DateTime.UtcNow
                             };
-                            
+
                             var rowValues = valueRow.EnumerateArray().ToArray();
-                            
+
                             for (int i = 0; i < columns.Count && i < rowValues.Length; i++)
                             {
                                 var columnName = columns[i];
                                 var valueElement = rowValues[i];
-                                
+
                                 if (columnName.Equals("time", StringComparison.OrdinalIgnoreCase))
                                 {
                                     if (DateTime.TryParse(valueElement.GetString(), out var timestamp))
@@ -1325,14 +1325,14 @@ namespace Sufficit.Statistics
                                         JsonValueKind.Null => null,
                                         _ => valueElement.ToString()
                                     };
-                                    
+
                                     if (value != null)
                                     {
                                         metric.Fields[columnName] = value;
                                     }
                                 }
                             }
-                            
+
                             if (metric.Fields.Any())
                             {
                                 metrics.Add(metric);
@@ -1343,14 +1343,14 @@ namespace Sufficit.Statistics
             }
             catch (System.Text.Json.JsonException jsonEx)
             {
-                _logger.LogError(jsonEx, "❌ InfluxDbMetricsProvider: Failed to parse InfluxQL JSON response - invalid JSON format. Response starts with: '{Start}'", 
+                _logger.LogError(jsonEx, "❌ InfluxDbMetricsProvider: Failed to parse InfluxQL JSON response - invalid JSON format. Response starts with: '{Start}'",
                     jsonResponse.Length > 50 ? jsonResponse.Substring(0, 50) : jsonResponse);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ InfluxDbMetricsProvider: Failed to parse InfluxQL JSON response - unexpected error");
             }
-            
+
             return metrics;
         }
 
@@ -1361,31 +1361,31 @@ namespace Sufficit.Statistics
         private IEnumerable<Metric> ParseFluxResponse(string response)
         {
             var metrics = new List<Metric>();
-            
+
             try
             {
                 var trimmedResponse = response.TrimStart();
-                
+
                 // Check if this is CSV format (starts with _measurement header)
                 if (trimmedResponse.StartsWith("_measurement"))
                 {
                     return ParseInfluxDbV3CsvResponse(response);
                 }
-                
+
                 // Otherwise, try to parse as traditional Flux CSV
                 var lines = response.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
                 if (lines.Length < 2) return metrics; // Need at least header + data
-                
+
                 // Simple CSV parsing - production should use proper CSV library
                 var headers = lines[0].Split(',');
-                
+
                 for (int i = 1; i < lines.Length; i++)
                 {
                     if (string.IsNullOrWhiteSpace(lines[i]) || lines[i].StartsWith("#")) continue;
-                    
+
                     var values = lines[i].Split(',');
                     if (values.Length != headers.Length) continue;
-                    
+
                     var metric = ParseFluxRow(headers, values);
                     if (metric != null) metrics.Add(metric);
                 }
@@ -1394,7 +1394,7 @@ namespace Sufficit.Statistics
             {
                 _logger.LogError(ex, "❌ InfluxDbMetricsProvider: Failed to parse response");
             }
-            
+
             return metrics;
         }
 
@@ -1406,12 +1406,12 @@ namespace Sufficit.Statistics
         private IEnumerable<Metric> ParseInfluxDbV3CsvResponse(string csvResponse)
         {
             var metrics = new List<Metric>();
-            
+
             try
             {
                 var lines = csvResponse.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
                 if (lines.Length < 2) return metrics; // Need at least header + data
-                
+
                 // Verify header format
                 var header = lines[0].Trim();
                 if (!header.Equals("_measurement,_time,_field,_value", StringComparison.OrdinalIgnoreCase))
@@ -1419,34 +1419,34 @@ namespace Sufficit.Statistics
                     _logger.LogWarning("⚠️ InfluxDbMetricsProvider: Unexpected CSV header format: {Header}", header);
                     return metrics;
                 }
-                
+
                 // Parse data rows
                 for (int i = 1; i < lines.Length; i++)
                 {
                     var line = lines[i].Trim();
                     if (string.IsNullOrWhiteSpace(line)) continue;
-                    
+
                     var parts = line.Split(',');
                     if (parts.Length != 4)
                     {
                         _logger.LogWarning("⚠️ InfluxDbMetricsProvider: Invalid CSV row format (expected 4 columns): {Row}", line);
                         continue;
                     }
-                    
+
                     try
                     {
                         var measurement = parts[0].Trim();
                         var timeStr = parts[1].Trim();
                         var fieldName = parts[2].Trim();
                         var fieldValueStr = parts[3].Trim();
-                        
+
                         // Parse timestamp
                         if (!DateTime.TryParse(timeStr, out var timestamp))
                         {
                             _logger.LogWarning("⚠️ InfluxDbMetricsProvider: Invalid timestamp format: {Timestamp}", timeStr);
                             continue;
                         }
-                        
+
                         // Parse field value
                         object fieldValue;
                         if (double.TryParse(fieldValueStr, out var numValue))
@@ -1465,7 +1465,7 @@ namespace Sufficit.Statistics
                         {
                             fieldValue = fieldValueStr;
                         }
-                        
+
                         var metric = new Metric
                         {
                             Measurement = measurement,
@@ -1473,9 +1473,9 @@ namespace Sufficit.Statistics
                             Tags = new Dictionary<string, string>(),
                             Fields = new Dictionary<string, object> { { fieldName, fieldValue } }
                         };
-                        
+
                         metrics.Add(metric);
-                        _logger.LogDebug("📊 InfluxDbMetricsProvider: Parsed metric - Measurement: {Measurement}, Time: {Time}, Field: {Field}={Value}", 
+                        _logger.LogDebug("📊 InfluxDbMetricsProvider: Parsed metric - Measurement: {Measurement}, Time: {Time}, Field: {Field}={Value}",
                             measurement, timestamp, fieldName, fieldValue);
                     }
                     catch (Exception ex)
@@ -1483,14 +1483,14 @@ namespace Sufficit.Statistics
                         _logger.LogWarning(ex, "⚠️ InfluxDbMetricsProvider: Failed to parse CSV row: {Row}", line);
                     }
                 }
-                
+
                 _logger.LogDebug("✅ InfluxDbMetricsProvider: Successfully parsed {Count} metrics from InfluxDB v3 CSV response", metrics.Count);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ InfluxDbMetricsProvider: Failed to parse InfluxDB v3 CSV response");
             }
-            
+
             return metrics;
         }
 
@@ -1511,7 +1511,7 @@ namespace Sufficit.Statistics
                 {
                     var header = headers[i].Trim();
                     var value = values[i].Trim();
-                    
+
                     switch (header)
                     {
                         case "_measurement":
