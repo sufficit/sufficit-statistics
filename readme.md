@@ -38,3 +38,11 @@ dotnet build src/Sufficit.Statistics.csproj -c Release
 Pushes to `main` build, pack and publish the package (requires the
 `NUGET_API_KEY` repository secret; the publish step is skipped while the secret
 is absent).
+
+## Persistent local queue
+
+Metric events and `IMetricController.Write` now commit to a bounded local SQLite
+queue before acceptance. Configure a persistent per-instance directory before
+installing this version. Direct `WriteSingleAsync`/`WriteBulkAsync` retain remote
+write semantics; `Enqueue`/`EnqueueBatch` provide explicit local acceptance.
+See [queue configuration, delivery semantics and tests](docs/LOCAL-METRICS-QUEUE.md).

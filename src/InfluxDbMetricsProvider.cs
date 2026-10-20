@@ -526,9 +526,9 @@ namespace Sufficit.Statistics
                 if (DateTime.UtcNow < _circuitBreakerOpenUntil)
                 {
                     _discardedMetricsCount++;
-                    _logger.LogDebug("⚡ Circuit breaker OPEN - Discarding metric write #{Count} (reopens in {Seconds}s)", 
+                    _logger.LogDebug("⚡ Circuit breaker OPEN - Rejecting metric write #{Count} (reopens in {Seconds}s)", 
                         _discardedMetricsCount, (_circuitBreakerOpenUntil - DateTime.UtcNow).TotalSeconds);
-                    return; // Discard write silently
+                    throw new HttpRequestException("InfluxDB circuit breaker is open; delivery was not accepted.");
                 }
                 
                 // If circuit was open and timeout expired, try health check
