@@ -995,16 +995,7 @@ namespace Sufficit.Statistics
         /// <summary>
         /// Escape special characters in InfluxDB Line Protocol
         /// </summary>
-        private string EscapeLineProtocol(string value)
-        {
-            if (string.IsNullOrEmpty(value)) return value;
-            
-            return value
-                .Replace("\\", "\\\\")  // Escape backslashes first
-                .Replace(",", "\\,")    // Escape commas
-                .Replace("=", "\\=")    // Escape equals
-                .Replace(" ", "\\ ");   // Escape spaces
-        }
+        private string EscapeLineProtocol(string value) => LineProtocol.EscapeIdentifier(value);
 
         /// <summary>
         /// Format field value according to InfluxDB type requirements
@@ -1015,7 +1006,7 @@ namespace Sufficit.Statistics
 
             return value switch
             {
-                string s => $"\"{s.Replace("\"", "\\\"")}\"",  // String values need quotes
+                string s => LineProtocol.QuoteStringField(s),
                 bool b => b.ToString().ToLowerInvariant(),      // Boolean as lowercase
                 float f => f.ToString("F6", System.Globalization.CultureInfo.InvariantCulture),
                 double d => d.ToString("F6", System.Globalization.CultureInfo.InvariantCulture),

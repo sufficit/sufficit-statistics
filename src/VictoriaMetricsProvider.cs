@@ -819,7 +819,7 @@ namespace Sufficit.Statistics
 
             if (metric.Fields?.Any() == true)
             {
-                builder.Append(string.Join(",", metric.Fields.Select(static field => $"{field.Key}={FormatFieldValue(field.Value)}")));
+                builder.Append(string.Join(",", metric.Fields.Select(static field => $"{EscapeLineProtocol(field.Key)}={FormatFieldValue(field.Value)}")));
             }
             else
             {
@@ -835,17 +835,7 @@ namespace Sufficit.Statistics
             return builder.ToString();
         }
 
-        private static string EscapeLineProtocol(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-                return value;
-
-            return value
-                .Replace("\\", "\\\\")
-                .Replace(",", "\\,")
-                .Replace("=", "\\=")
-                .Replace(" ", "\\ ");
-        }
+        private static string EscapeLineProtocol(string value) => LineProtocol.EscapeIdentifier(value);
 
         private static string EscapeLabelValue(string value)
         {
@@ -861,7 +851,7 @@ namespace Sufficit.Statistics
 
             return value switch
             {
-                string text => $"\"{text.Replace("\"", "\\\"")}\"",
+                string text => LineProtocol.QuoteStringField(text),
                 bool boolValue => boolValue.ToString().ToLowerInvariant(),
                 float floatValue => floatValue.ToString("F6", CultureInfo.InvariantCulture),
                 double doubleValue => doubleValue.ToString("F6", CultureInfo.InvariantCulture),

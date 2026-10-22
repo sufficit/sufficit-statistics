@@ -18,6 +18,17 @@ if (args.Length == 2 && args[0] == "crash-writer")
     child.EnqueueBatch(new[] { Item(1), Item(2) });
     Environment.Exit(0); // Intentionally no Dispose/host shutdown.
 }
+// Line protocol: a raw line break inside a tag ended the line and made VictoriaMetrics reject the
+// whole batch (apoint-ai lost every metric while a provider health message carried an HTML 502).
+{
+    var tag = LineProtocol.EscapeIdentifier("Provider API error: 502 (BadGateway): <!DOCTYPE html>\r\n<!--\r\n\r\nHello fu,x=y\\z");
+    Check(!tag.Contains('\n') && !tag.Contains('\r'), "Tag escape must not leave line breaks");
+    Check(tag == "Provider\\ API\\ error:\\ 502\\ (BadGateway):\\ <!DOCTYPE\\ html>\\ \\ <!--\\ \\ \\ \\ Hello\\ fu\\,x\\=y\\\\z", "Unexpected tag escape: " + tag);
+    var field = LineProtocol.QuoteStringField("say \"hi\"\nnext\\path");
+    Check(field == "\"say \\\"hi\\\" next\\\\path\"", "Unexpected string field: " + field);
+    Check(LineProtocol.EscapeIdentifier("") == "" && LineProtocol.QuoteStringField(null!) == "\"\"", "Empty values");
+    Console.WriteLine("PASS line protocol escaping keeps every metric on one line");
+}
 var root = Path.Combine(Path.GetTempPath(), "metrics-tests-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(root);
 try
