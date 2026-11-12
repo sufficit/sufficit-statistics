@@ -87,6 +87,12 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
+    <!-- Keep Extensions aligned with EFData/Standard on net7 without changing the runtime target. -->
+    <PropertyGroup>
+        <ExtensionsVersion>$(PkgVersion)</ExtensionsVersion>
+        <ExtensionsVersion Condition="'$(TargetFramework)' == 'net7.0'">[8.*,9.0.0)</ExtensionsVersion>
+    </PropertyGroup>
+
 	<!-- #endregion -->
 
 	<ItemGroup Label="Sufficit Platform Dependencies">
@@ -113,14 +119,14 @@
 		     as a downgrade (NU1605) unless the project references the package directly;
 		     $(PkgVersion) floats to the latest 9.x, satisfying both. -->
 		<PackageReference Include="System.Text.Json" Version="$(PkgVersion)" Condition=" '$(TargetFramework)' == 'netstandard2.0'" />
-		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(PkgVersion)" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="$(PkgVersion)" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(PkgVersion)" />
-		<PackageReference Include="Microsoft.Extensions.Options" Version="$(PkgVersion)" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(PkgVersion)" />
-		<PackageReference Include="Microsoft.Extensions.Configuration" Version="$(PkgVersion)" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(PkgVersion)" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="$(PkgVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(ExtensionsVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="$(ExtensionsVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(ExtensionsVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="$(ExtensionsVersion)" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(ExtensionsVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="$(ExtensionsVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(ExtensionsVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="$(ExtensionsVersion)" />
 	</ItemGroup>
 
 </Project>
