@@ -7,9 +7,21 @@ namespace Sufficit.Statistics
     public sealed class MetricsQueueOptions
     {
         // Dedicated persistent directory per application instance; configure explicitly in production.
-        public string DirectoryPath { get; set; } = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Sufficit", Assembly.GetEntryAssembly()?.GetName().Name ?? "Statistics", "metrics-queue");
+        public string DirectoryPath { get; set; } = DefaultDirectoryPath();
+
+        /// <summary>
+        ///     Always absolute. GetFolderPath returns an empty string when the folder does not exist yet
+        ///     (a service user whose ~/.local/share was never created), which made the default relative and
+        ///     aborted host startup (telephony-billing, 06/11/2026). DoNotVerify keeps the user's location;
+        ///     without any home directory the system temporary directory is used.
+        /// </summary>
+        internal static string DefaultDirectoryPath()
+        {
+            var root = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify);
+            if (string.IsNullOrWhiteSpace(root) || !Path.IsPathRooted(root))
+                root = Path.Combine(Path.GetTempPath(), "sufficit-metrics");
+            return Path.Combine(root, "Sufficit", Assembly.GetEntryAssembly()?.GetName().Name ?? "Statistics", "metrics-queue");
+        }
         public long MaxDatabaseBytes { get; set; } = 256L * 1024 * 1024;
         public int MaxMetricBytes { get; set; } = 256 * 1024;
         public int BatchSize { get; set; } = 100;

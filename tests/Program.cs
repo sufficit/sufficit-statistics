@@ -12,6 +12,11 @@ static async Task Until(Func<bool> condition)
 }
 static Metric Item(int value = 1) => new() { Measurement = "queue_test", Fields = new() { ["value"] = value, ["bool"] = true, ["text"] = "a\"b", ["decimal"] = 1.23456789m } };
 static MetricsQueueOptions Options(string path) => new() { DirectoryPath = path, PollInterval = TimeSpan.FromMilliseconds(10), MaxRetryDelay = TimeSpan.FromMilliseconds(40), BatchSize = 2 };
+if (args.Length == 1 && args[0] == "default-path")
+{
+    Console.Write(new MetricsQueueOptions().DirectoryPath);
+    Environment.Exit(0);
+}
 if (args.Length == 2 && args[0] == "crash-writer")
 {
     var child = new StatisticsRuntime(new FakeProvider { Fail = true }, NullLogger<StatisticsRuntime>.Instance, Options(args[1]));
@@ -28,6 +33,27 @@ if (args.Length == 2 && args[0] == "crash-writer")
     Check(field == "\"say \\\"hi\\\" next\\\\path\"", "Unexpected string field: " + field);
     Check(LineProtocol.EscapeIdentifier("") == "" && LineProtocol.QuoteStringField(null!) == "\"\"", "Empty values");
     Console.WriteLine("PASS line protocol escaping keeps every metric on one line");
+}
+// Default queue path must be absolute even when the service user's ~/.local/share does not exist
+// (HOME set, folder missing) or no home directory is known at all.
+{
+    static string DefaultPath(string? home)
+    {
+        var start = new System.Diagnostics.ProcessStartInfo("dotnet") { UseShellExecute = false, RedirectStandardOutput = true };
+        start.ArgumentList.Add(typeof(MetricsQueueOptions).Assembly.Location.Replace("Sufficit.Statistics.dll", "QueueTests.dll"));
+        start.ArgumentList.Add("default-path");
+        start.Environment.Remove("XDG_DATA_HOME");
+        if (home == null) start.Environment.Remove("HOME"); else start.Environment["HOME"] = home;
+        using var child = System.Diagnostics.Process.Start(start)!;
+        var output = child.StandardOutput.ReadToEnd(); child.WaitForExit();
+        return output;
+    }
+    var missingHome = Path.Combine(Path.GetTempPath(), "metrics-no-home-" + Guid.NewGuid().ToString("N"));
+    var withMissingFolder = DefaultPath(missingHome);
+    Check(Path.IsPathRooted(withMissingFolder) && withMissingFolder.StartsWith(missingHome), "Default path must keep the missing home: " + withMissingFolder);
+    var withoutHome = DefaultPath(null);
+    Check(Path.IsPathRooted(withoutHome), "Default path must be absolute without HOME: " + withoutHome);
+    Console.WriteLine("PASS default queue path is absolute without an existing ~/.local/share");
 }
 var root = Path.Combine(Path.GetTempPath(), "metrics-tests-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(root);
