@@ -2,7 +2,11 @@
 
 `StatisticsRuntime` persiste em SQLite os eventos `Metric`, chamadas a `IMetricController.Write`, `Enqueue` e `EnqueueBatch`. O retorno confirma commit **local**, não entrega ao backend. O worker envia em lotes e remove somente após confirmação do provider. Falhas preservam o lote e aplicam espera progressiva; a fila retoma ao construir o runtime. Em Generic Host, `AddSufficitStatistics` registra hosted service para instanciá-lo no startup, mesmo sem eventos novos.
 
-`WriteSingleAsync` e `WriteBulkAsync` preservam seu contrato de escrita **direta remota**. Produtores que desejam aceite local devem usar Enqueue/EnqueueBatch; o pacote não migra automaticamente jobs externos nem muda a semântica de suas confirmações. EnqueueBatch aceita até BatchSize métricas atomicamente. A escrita SQLite é síncrona e limitada: o chamador aguarda disco, nunca a rede. Para fluxo de telefonia sensível à latência, usar o caminho de publicação em background existente e medir o custo de fsync; não mover espera de rede para a chamada.
+`WriteSingleAsync` e `WriteBulkAsync` preservam seu contrato de escrita **direta remota**. Produtores que desejam aceite local devem usar Enqueue/EnqueueBatch; o pacote não migra automaticamente jobs externos nem muda a semântica de suas confirmações. EnqueueBatch aceita até BatchSize métricas atomicamente. A escrita SQLite é síncrona e limitada: o chamador aguarda disco, nunca a rede. Fluxos sensíveis à latência devem usar um buffer de aplicação limitado e enviar lotes ao SQLite em um worker.
+
+### Inicialização controlada pela aplicação
+
+Se a telemetria for opcional para a prontidão do host, chamar `DeferStatisticsQueueStartup()` após `AddSufficitStatistics()`. O worker da aplicação deve resolver `StatisticsRuntime` em segundo plano mesmo sem métricas novas, para retomar pendências já duráveis. O worker pode tentar novamente se a abertura falhar. O contêiner continua responsável pelo descarte do runtime quando ele é criado. Os demais consumidores continuam abrindo a fila ao iniciar o host.
 
 ## Configuração
 

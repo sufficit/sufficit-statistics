@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Sufficit.EFData.Statistics;
 using Sufficit.Events;
@@ -36,6 +37,24 @@ namespace Sufficit.Statistics
             services.AddSingleton<Microsoft.Extensions.Hosting.IHostedService, MetricsQueueHostedService>();
             services.AddSingleton<IMetricController>(provider => provider.GetRequiredService<StatisticsRuntime>());
             services.AddSingleton<IEventHandler<Metric>>(provider => provider.GetRequiredService<StatisticsRuntime>());
+
+            return services;
+        }
+
+        /// <summary>
+        /// Lets the application own queue initialization. Its background worker must
+        /// resolve StatisticsRuntime to open the queue and resume persisted delivery.
+        /// Call after registering Sufficit statistics.
+        /// </summary>
+        public static IServiceCollection DeferStatisticsQueueStartup(this IServiceCollection services)
+        {
+            for (var index = services.Count - 1; index >= 0; index--)
+            {
+                var service = services[index];
+                if (service.ServiceType == typeof(IHostedService) &&
+                    service.ImplementationType == typeof(MetricsQueueHostedService))
+                    services.RemoveAt(index);
+            }
 
             return services;
         }
